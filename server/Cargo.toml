@@ -1,0 +1,54 @@
+[package]
+name = "server"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+actix-web = "4"
+actix-http = "3"
+actix-cors = "0.6"
+actix-service = "2"
+actix-rt = "2"
+actix-files = "0.6"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1"
+dotenvy = "0.15"
+log = "0.4"
+env_logger = "0.10"
+diesel = { version = "2.1", features = [
+    "postgres",
+    "r2d2",
+    "chrono",
+    "serde_json",
+    "uuid",
+] }
+diesel_migrations = "2.1"
+diesel-derive-enum = { version = "2.1", features = ["postgres"] }
+# validator = { version = "0.16", features = ["derive"] }
+# bcrypt = { version = "0.15" }
+uuid = { version = "1", features = ["serde", "v4"] }
+# jsonwebtoken = { version = "8" }
+# thiserror = "1.0"
+# futures = { version = "0.3" }
+# chrono = { version = "0.4", features = ["serde"] }
+# lazy_static = "1.4"
+# derive_more = "0.99"
+[target.'cfg(not(target_env = "msvc"))'.dependencies]
+jemallocator = "0.5"
+thiserror = "1"
+
+[profile.release]
+# less code to include into binary
+panic = 'abort'
+# optimization over all codebase ( better optimization, slower build )
+codegen-units = 1
+# optimization for size ( more aggressive )
+opt-level = 'z'
+# optimization for size
+# opt-level = 's'
+# link time optimization using using whole-program analysis
+lto = true
+# Automatically strip symbols from the binary.
+# strip = true
