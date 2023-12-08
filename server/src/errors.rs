@@ -1,6 +1,6 @@
-use actix_http::StatusCode;
-use actix_web::{HttpResponse, ResponseError};
+use actix_web::{error::BlockingError, http::StatusCode, HttpResponse, ResponseError};
 use diesel::r2d2::{Error as R2D2Error, PoolError};
+use diesel::result::{DatabaseErrorKind, Error as DieselError};
 use thiserror::Error as ThisError;
 
 #[derive(ThisError, Clone, Debug, PartialEq)]
@@ -67,6 +67,34 @@ impl From<R2D2Error> for AppError {
 
 impl From<PoolError> for AppError {
     fn from(_err: PoolError) -> Self {
+        AppError::InternalServerError
+    }
+}
+
+impl From<DieselError> for AppError {
+    fn from(err: DieselError) -> Self {
+        match err {
+            DieselError::DatabaseError(kind, info) => {
+                if let DatabaseErrorKind::UniqueViolation = kind {
+                    let message = info.details().unwrap_or_else(|| info.message()).to_string();
+                    AppError::UnprocessableEntity(vec![message])
+                } else {
+                    log::error!("Unexpected diesel error {:?}", info.message());
+                    AppError::InternalServerError
+                }
+            }
+            DieselError::NotFound => AppError::NotFound,
+            _ => AppError::InternalServerError,
+        }
+    }
+}
+
+impl From<BlockingError> for AppError {
+    fn from(err: BlockingError) -> Self {
+        log::error!(
+            "Error during running a blocking call in background: {:?}",
+            err.to_string()
+        );
         AppError::InternalServerError
     }
 }

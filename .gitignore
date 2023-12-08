@@ -21,5 +21,3 @@ dist/
 *.code-workspace
 
 node_modules/
-package.json
-package-lock.json

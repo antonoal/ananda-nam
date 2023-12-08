@@ -39,7 +39,8 @@
 				"mhutchie.git-graph",
 				"oderwat.indent-rainbow",
 				"shuworks.vscode-jump-to-hint",
-				"bradlc.vscode-tailwindcss"
+				"bradlc.vscode-tailwindcss",
+				"EditorConfig.EditorConfig"
 			]
         }
     },

@@ -32,7 +32,7 @@ uuid = { version = "1", features = ["serde", "v4"] }
 # jsonwebtoken = { version = "8" }
 # thiserror = "1.0"
 # futures = { version = "0.3" }
-# chrono = { version = "0.4", features = ["serde"] }
+chrono = { version = "0.4", features = ["serde"] }
 # lazy_static = "1.4"
 # derive_more = "0.99"
 [target.'cfg(not(target_env = "msvc"))'.dependencies]

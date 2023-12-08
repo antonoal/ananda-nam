@@ -22,6 +22,7 @@ mod errors;
 mod handlers;
 mod middleware;
 mod routes;
+mod schema;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

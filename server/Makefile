@@ -3,7 +3,7 @@ SHELL := /bin/bash
 # db_url := postgres://postgres:postgres@192.168.68.102:5432/sadhana_pro
 
 # run_server:
-# 	DATABASE_URL=$(db_url) \
+# 	\
 # 		RUST_BACKTRACE=full \
 # 		cargo run --bin server
 
@@ -18,19 +18,19 @@ migrate:
 	diesel migration run --migration-dir=migrations
 
 redo_migrate:
-	DATABASE_URL=$(db_url) diesel migration redo --migration-dir=migrations
+	diesel migration redo --migration-dir=migrations
 
 undo_migrate:
-	DATABASE_URL=$(db_url) diesel migration revert --migration-dir=migrations
+	diesel migration revert --migration-dir=migrations
 
 reset_db:
-	DATABASE_URL=$(db_url) diesel database reset --migration-dir=migrations
+	diesel database reset --migration-dir=migrations
 
 gen_schema:
-	DATABASE_URL=$(db_url) diesel print-schema > server/src/schema.rs
+	diesel print-schema > src/schema.rs
 
 # test:
-# 	DATABASE_URL=$(db_url) \
+# 	\
 # 		JWT_KEY= \
 # 		cargo test $(T) -- --nocapture --test-threads=1
 
