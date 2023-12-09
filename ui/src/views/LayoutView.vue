@@ -58,13 +58,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterView } from 'vue-router'
 import SidebarNavLink from '@/components/SidebarNavLink.vue'
 
-const sidebarCollapsed = ref(false) //TODO: read from local storage
+const sidebarCollapsed = ref(document.documentElement.clientWidth < 1024)
 
 const toggleSidebar = () => {
   sidebarCollapsed.value = !sidebarCollapsed.value
 }
+
+const handleResize = () => {
+  sidebarCollapsed.value = document.documentElement.clientWidth < 1024
+}
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize)
+})
 </script>
