@@ -4,7 +4,7 @@
     :class="[isActive ? 'bg-slate-800' : 'cursor-pointer hover:bg-slate-700']"
   >
     <RouterLink :to="path"
-      ><div class="">{{ label }}</div></RouterLink
+      ><div>{{ label }}</div></RouterLink
     >
   </div>
 </template>

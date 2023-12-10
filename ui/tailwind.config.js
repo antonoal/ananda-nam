@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+const defaultTheme = require("tailwindcss/defaultTheme");
+
 module.exports = {
   content: [
     "./index.html",
@@ -6,6 +8,9 @@ module.exports = {
     "./node_modules/primevue/**/*.{vue,js,ts,jsx,tsx}"
   ],
   theme: {
+    fontFamily: {
+      sans: ["montserrat", ...defaultTheme.fontFamily.sans]
+    },
     extend: {
       rotate: {
         '15': '15deg'

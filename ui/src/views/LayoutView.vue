@@ -4,16 +4,19 @@
       class="dark flex-shrink-0 overflow-x-hidden bg-black"
       :class="[sidebarCollapsed ? 'hidden w-0' : 'w-[260px]']"
     >
-      <div class="h-full w-[260px]">
-        <div class="flex h-full min-h-0 flex-col">
-          <div class="flex h-full min-h-0 flex-col transition-opacity">
-            <div class="h-screen text-white text-base p-2 flex flex-col">
-              <nav>
-                <SidebarNavLink path="/" label="Home" />
-                <SidebarNavLink path="/about" label="About" />
-                <SidebarNavLink path="/persons" label="Persons" />
-              </nav>
-            </div>
+      <div class="flex w-[260px] h-full min-h-0 flex-col transition-opacity">
+        <div class="h-screen text-white text-base p-2 flex flex-col">
+          <div class="flex-1">
+            <nav>
+              <SidebarNavLink path="/" label="Home" />
+              <SidebarNavLink path="/about" label="About" />
+              <SidebarNavLink path="/persons" label="Persons" />
+            </nav>
+          </div>
+          <div v-if="user">
+            <nav>
+              <SidebarNavLink path="/todo" :label="user.name" />
+            </nav>
           </div>
         </div>
       </div>
@@ -58,9 +61,14 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterView } from 'vue-router'
 import SidebarNavLink from '@/components/SidebarNavLink.vue'
+import { authStore } from '../store/auth'
+
+const auth = authStore()
+
+const user = computed(() => auth.user)
 
 const sidebarCollapsed = ref(document.documentElement.clientWidth < 1024)
 
