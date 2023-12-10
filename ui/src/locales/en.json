@@ -1,0 +1,13 @@
+{
+  "login": {
+    "header": "Sign in to your account",
+    "email": "Email address",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "submit": "Submit",
+    "emailInvalid": "Email is invalid",
+    "emailRequired": "Email is required",
+    "pwdRequired": "Password is required",
+    "loginError": "An error occurred during login."
+  }
+}
