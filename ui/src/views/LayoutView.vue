@@ -15,7 +15,12 @@
           </div>
           <div v-if="user">
             <nav>
-              <SidebarNavLink path="/todo" :label="user.name" />
+              <Menu ref="userMenu" :model="userMenuItems" popup />
+              <div
+                class="relative group active:opacity-80 p-2 rounded-md cursor-pointer hover:bg-slate-700"
+              >
+                <a @click="toggleUserMenu">{{ user.name }}</a>
+              </div>
             </nav>
           </div>
         </div>
@@ -63,10 +68,26 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterView } from 'vue-router'
+import Menu from 'primevue/menu'
 import SidebarNavLink from '@/components/SidebarNavLink.vue'
 import { authStore } from '../store/auth'
 
 const auth = authStore()
+
+const userMenu = ref()
+const userMenuItems = ref([
+  {
+    label: 'Settings'
+  },
+  {
+    label: 'Logout',
+    icon: '',
+    command: () => auth.logout()
+  }
+])
+const toggleUserMenu = (event) => {
+  userMenu?.value?.toggle(event)
+}
 
 const user = computed(() => auth.user)
 

@@ -6,7 +6,7 @@
     "composite": true,
     "baseUrl": ".",
     "noImplicitAny": false,
-    // "allowJs": true,
+    "allowJs": true,
     "paths": {
       "@/*": ["./src/*"]
     }
