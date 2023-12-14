@@ -9,5 +9,14 @@
     "emailRequired": "Email is required",
     "pwdRequired": "Password is required",
     "loginError": "An error occurred during login."
+  },
+  "views": {
+    "forbidden": "You are not authorised to view this page",
+    "streams": "Streams"
+  },
+  "streams": {
+    "columns" : {
+      "name": "Name"
+    }
   }
 }

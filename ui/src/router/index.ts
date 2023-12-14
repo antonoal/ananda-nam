@@ -1,9 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import AboutView from '../views/AboutView.vue'
+import StreamsView from '../views/StreamsView.vue'
 import LayoutView from '../views/LayoutView.vue'
 import PersonsView from '../views/PersonsView.vue'
 import LoginView from '@/views/LoginView.vue'
+import ForbiddenView from '@/views/ForbiddenView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -14,13 +15,17 @@ const router = createRouter({
       meta: { requiresAuth: true },
       children: [
         {path: '', component: HomeView},
-        {path: '/about', component: AboutView},
+        {path: '/streams', component: StreamsView},
         {path: '/persons', component: PersonsView}
       ]
     },
     {
       path: '/login',
       component: LoginView
+    },
+    {
+      path: '/forbidden',
+      component: ForbiddenView
     }
     // {
     //   path: '/about',

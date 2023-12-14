@@ -8,16 +8,19 @@
         <div class="h-screen text-white text-base p-2 flex flex-col">
           <div class="flex-1">
             <nav>
-              <SidebarNavLink path="/" label="Home" />
-              <SidebarNavLink path="/about" label="About" />
-              <SidebarNavLink path="/persons" label="Persons" />
+              <SidebarNavLink
+                path="/streams"
+                :label="$t('views.streams')"
+                :v-if="auth.canSee('/streams')"
+              />
+              <SidebarNavLink path="/persons" label="Persons" v-if="auth.canSee('/persons')" />
             </nav>
           </div>
           <div v-if="user">
             <nav>
               <Menu ref="userMenu" :model="userMenuItems" popup />
               <div
-                class="relative group active:opacity-80 p-2 rounded-md cursor-pointer hover:bg-slate-700"
+                class="relative group active:opacity-80 p-2 rounded-md cursor-pointer hover:bg-zinc-800"
               >
                 <a @click="toggleUserMenu">{{ user.name }}</a>
               </div>
@@ -39,11 +42,11 @@
               >
                 <div class="flex h-6 w-6 flex-col items-center">
                   <div
-                    class="h-3 w-1 rounded-full bg-slate-800 translate-y-[0.15rem] translate-z-0"
+                    class="h-3 w-1 rounded-full bg-slate-800 dark:bg-white translate-y-[0.15rem] translate-z-0"
                     :class="[sidebarCollapsed ? '-rotate-15' : 'rotate-0 group-hover:rotate-15']"
                   ></div>
                   <div
-                    class="h-3 w-1 rounded-full bg-slate-800 -translate-y-[0.15rem]translate-z-0"
+                    class="h-3 w-1 rounded-full bg-slate-800 dark:bg-white -translate-y-[0.15rem]translate-z-0"
                     :class="[sidebarCollapsed ? 'rotate-15' : 'rotate-0 group-hover:-rotate-15']"
                   ></div>
                 </div>

@@ -1,7 +1,7 @@
 <template>
   <div
     class="relative group active:opacity-80 p-2 rounded-md"
-    :class="[isActive ? 'bg-slate-800' : 'cursor-pointer hover:bg-slate-700']"
+    :class="[isActive ? 'bg-zinc-800' : 'cursor-pointer hover:bg-zinc-800']"
   >
     <RouterLink :to="path"
       ><div>{{ label }}</div></RouterLink

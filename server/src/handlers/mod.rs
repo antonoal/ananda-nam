@@ -7,6 +7,8 @@ use serde::{Deserialize, Serialize};
 use crate::schema::persons;
 use crate::{errors::AppError, AppState};
 
+pub mod streams;
+
 #[derive(Debug, Serialize, Deserialize, QueryableByName)]
 pub struct Person {
     #[diesel(sql_type = Int4)]
