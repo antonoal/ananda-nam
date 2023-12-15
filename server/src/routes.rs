@@ -5,6 +5,7 @@ use crate::handlers;
 pub fn routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/api/1")
+            .service(web::scope("/login").route("", web::post().to(handlers::user::login)))
             .service(
                 web::scope("/streams")
                     .route("", web::get().to(handlers::streams::get_all))

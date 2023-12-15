@@ -16,13 +16,13 @@ extern crate log;
 #[global_allocator]
 static GLOBAL: Jemalloc = Jemalloc;
 
-mod consts;
 mod db;
 mod errors;
 mod handlers;
 mod middleware;
 mod routes;
 mod schema;
+mod utils;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

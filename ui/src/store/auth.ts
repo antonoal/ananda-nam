@@ -1,39 +1,56 @@
-import { defineStore } from 'pinia';
-import axiosClient from '@/axiosClient';
+import { defineStore } from 'pinia'
+import axiosClient from '@/axiosClient'
 import router from '@/router'
 
 export const authStore = defineStore('auth', {
   state: () => ({
-    token: 'xx',
-    user: {name: 'Bob Synclair', email: 'a@a.a'} as User | null //null as User | null,
+    token: '',
+    user: null as User | null
   }),
-  persist: {
-    storage: sessionStorage,
-  },
+  persist: true,
   actions: {
-    async login(username: string, password: string) {
-      const response = await axiosClient.post<LoginResponse>('/login', {'username': username, 'password': password});
-      this.token = response.data.token;
-      const userResponse = await axiosClient.get<MeResponse>('/me');
-      this.user = userResponse.data.user;
+    async login(email: string, password: string) {
+      const response = await axiosClient.post<LoginResponse>('/login', {
+        email: email,
+        password: password
+      })
+      this.token = response.data.token
+      this.user = response.data.user
     },
     logout() {
-      this.token = '';
-      this.user = null;
+      this.token = ''
+      this.user = null
       router.push('/login')
     },
-  },
-});
+    canSee(path) {
+      const privs = privilegeMap.get(path)
+      return privs === undefined || this.user?.privileges.some((v) => privs.includes(v.privilege))
+    }
+  }
+})
 
-interface User {
-  name: string,
-  email: string,
+enum Privilege {
+  EDIT_STRUCTURE = 'EDIT_STRUCTURE',
+  ASSIGN_STUDENTS = 'ASSIGN_STUDENTS',
+  LOG_ATTENDANCE = 'LOG_ATTENDANCE',
+  GENERATE_REPORTS = 'GENERATE_REPORTS',
+  VIEW_STUDENT = 'VIEW_STUDENT'
 }
 
-interface MeResponse {
-  user: User
+const privilegeMap = new Map<string, Array<Privilege>>([['/persons', [Privilege.EDIT_STRUCTURE]]])
+
+interface EntityPrivilege {
+  entityId: number | null
+  privilege: Privilege
+}
+interface User {
+  id: number
+  name: string
+  email: string
+  privileges: EntityPrivilege[]
 }
 
 interface LoginResponse {
-  token: string;
+  token: string
+  user: User
 }

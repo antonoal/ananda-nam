@@ -1,6 +1,8 @@
 use actix_web::{error::BlockingError, http::StatusCode, HttpResponse, ResponseError};
+use bcrypt::BcryptError;
 use diesel::r2d2::{Error as R2D2Error, PoolError};
 use diesel::result::{DatabaseErrorKind, Error as DieselError};
+use jsonwebtoken::errors::{Error as JwtError, ErrorKind as JwtErrorKind};
 use thiserror::Error as ThisError;
 
 #[derive(ThisError, Clone, Debug, PartialEq)]
@@ -60,13 +62,15 @@ impl ResponseError for AppError {
 }
 
 impl From<R2D2Error> for AppError {
-    fn from(_err: R2D2Error) -> Self {
+    fn from(err: R2D2Error) -> Self {
+        log::error!("Unexpected R2D2 error {:?}", err.to_string());
         AppError::InternalServerError
     }
 }
 
 impl From<PoolError> for AppError {
-    fn from(_err: PoolError) -> Self {
+    fn from(err: PoolError) -> Self {
+        log::error!("Unexpected connection pool error {:?}", err.to_string());
         AppError::InternalServerError
     }
 }
@@ -79,12 +83,15 @@ impl From<DieselError> for AppError {
                     let message = info.details().unwrap_or_else(|| info.message()).to_string();
                     AppError::UnprocessableEntity(vec![message])
                 } else {
-                    log::error!("Unexpected diesel error {:?}", info.message());
+                    log::error!("Unexpected database error {:?}", info.message());
                     AppError::InternalServerError
                 }
             }
             DieselError::NotFound => AppError::NotFound,
-            _ => AppError::InternalServerError,
+            _ => {
+                log::error!("Unexpected diesel error {:?}", err.to_string());
+                AppError::InternalServerError
+            }
         }
     }
 }
@@ -96,5 +103,27 @@ impl From<BlockingError> for AppError {
             err.to_string()
         );
         AppError::InternalServerError
+    }
+}
+
+impl From<BcryptError> for AppError {
+    fn from(err: BcryptError) -> Self {
+        match err {
+            BcryptError::InvalidHash(_) => AppError::Unauthorized("PW is invalid".into()),
+            _ => {
+                log::error!("Error with calculating hash: {:?}", err.to_string());
+                AppError::InternalServerError
+            }
+        }
+    }
+}
+
+impl From<JwtError> for AppError {
+    fn from(err: JwtError) -> Self {
+        match err.kind() {
+            JwtErrorKind::InvalidToken => AppError::Unauthorized("Token is invalid".into()),
+            JwtErrorKind::InvalidIssuer => AppError::Unauthorized("Issuer is invalid".into()),
+            _ => AppError::Unauthorized("An issue was found with the token provided".into()),
+        }
     }
 }

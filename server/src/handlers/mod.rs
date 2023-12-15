@@ -8,6 +8,7 @@ use crate::schema::persons;
 use crate::{errors::AppError, AppState};
 
 pub mod streams;
+pub mod user;
 
 #[derive(Debug, Serialize, Deserialize, QueryableByName)]
 pub struct Person {
