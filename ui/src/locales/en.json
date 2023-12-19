@@ -15,8 +15,24 @@
     "streams": "Streams"
   },
   "streams": {
+    "stream": "Stream",
     "columns" : {
       "name": "Name"
     }
+  },
+  "dialog": {
+    "edit": "Edit {s}",
+    "new": "New {s}",
+    "confirm": "Confirm",
+    "confirmDelete": "Are you sure you want to delete {s}?"
+  },
+  "menu": {
+    "delete": "Delete",
+    "edit": "Edit",
+    "new": "New",
+    "cancel": "Cancel",
+    "save": "Save",
+    "yes": "Yes",
+    "no": "No"
   }
 }

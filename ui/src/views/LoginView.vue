@@ -41,13 +41,13 @@
             <span class="text-red-500 dark:text-red-800">{{ errors.password }}</span>
           </div>
 
-          <div class="flex items-center justify-between">
+          <!-- <div class="flex items-center justify-between"> FIXME: Do we need pwd reset?
             <a
               href="#"
               class="text-sm font-medium text-primary-600 hover:underline dark:text-primary-500"
               >{{ $t('login.forgotPassword') }}</a
             >
-          </div>
+          </div> -->
 
           <Button type="submit" class="w-full justify-center">{{ $t('login.submit') }}</Button>
         </form>

@@ -7,7 +7,7 @@
         <Button
           size="small"
           outlined
-          label="New"
+          :label="$t('menu.new')"
           icon="pi pi-plus"
           severity="info"
           class="mr-2"
@@ -44,13 +44,15 @@
     <Dialog
       v-model:visible="newDialog"
       :style="{ width: '450px' }"
-      :header="selected ? 'Edit Stream' : 'New Stream'"
+      :header="t(`dialog.${selected ? 'edit' : 'new'}`, { s: t('streams.stream') })"
       :modal="true"
       class="p-fluid"
     >
       <form>
         <div class="flex flex-col gap-2 text-gray-700 dark:text-white">
-          <label for="newName" class="block text-sm font-medium">Name:</label>
+          <label for="newName" class="block text-sm font-medium"
+            >{{ t('streams.columns.name') }}:</label
+          >
           <InputText
             v-model="name"
             v-bind="nameAttrs"
@@ -62,30 +64,42 @@
           <small class="text-red-500 dark:text-red-800">{{ errors.name }}</small>
         </div>
         <div class="flex justify-end">
-          <Button type="reset" label="Cancel" icon="pi pi-times" text @click="closeNewDialog" />
-          <Button type="submit" label="Save" icon="pi pi-check" text @click="upsert" />
+          <Button
+            type="reset"
+            :label="t('menu.cancel')"
+            icon="pi pi-times"
+            text
+            @click="closeNewDialog"
+          />
+          <Button type="submit" :label="t('menu.save')" icon="pi pi-check" text @click="upsert" />
         </div>
       </form>
     </Dialog>
     <Dialog
       v-model:visible="deleteStreamDialog"
       :style="{ width: '450px' }"
-      header="Confirm"
+      :header="t('dialog.confirm')"
       :modal="true"
     >
       <div class="confirmation-content">
         <i class="pi pi-exclamation-triangle mr-3 text-3xl" />
-        <span v-if="selected">Are you sure you want to delete the selected products?</span>
+        <span v-if="selected">{{ t('dialog.confirmDelete', { s: selected.name }) }}</span>
       </div>
       <template #footer>
         <Button
           type="reset"
-          label="No"
+          :label="t('menu.no')"
           icon="pi pi-times"
           text
           @click="deleteStreamDialog = false"
         />
-        <Button type="submit" label="Yes" icon="pi pi-check" text @click="deleteSelected" />
+        <Button
+          type="submit"
+          :label="t('menu.yes')"
+          icon="pi pi-check"
+          text
+          @click="deleteSelected"
+        />
       </template>
     </Dialog>
   </div>
@@ -140,11 +154,11 @@ const [name, nameAttrs] = defineField('name', { validateOnModelUpdate: false })
 
 const rowMenuItems = ref([
   {
-    label: 'Edit',
+    label: t('menu.edit'),
     icon: 'pi pi-fw pi-file-edit',
     command: () => openEditDialog()
   },
-  { label: 'Delete', icon: 'pi pi-fw pi-times', command: () => confirmDelete() }
+  { label: t('menu.delete'), icon: 'pi pi-fw pi-times', command: () => confirmDelete() }
 ])
 
 const confirmDelete = () => {
