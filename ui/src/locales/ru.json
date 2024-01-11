@@ -12,10 +12,24 @@
   },
   "views": {
     "forbidden": "У Вас нет доступа к этой странице",
-    "streams": "Направления"
+    "schools": "Направления",
+    "years": "Курсы",
+    "streams": "Потоки"
+  },
+  "schools": {
+    "school": "Направление", 
+    "columns" : {
+      "name": "Название"
+    }
+  },
+  "years": {
+    "year": "Курс", 
+    "columns" : {
+      "name": "Название"
+    }
   },
   "streams": {
-    "stream": "Направление", 
+    "stream": "Поток", 
     "columns" : {
       "name": "Название"
     }

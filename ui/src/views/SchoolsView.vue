@@ -2,7 +2,7 @@
   <Message severity="error" v-if="error">{{ error }}</Message>
   <div class="container">
     <Card>
-      <template #title>{{ $t('views.streams') }}</template>
+      <template #title>{{ $t('views.schools') }}</template>
       <template #content>
         <Button
           size="small"
@@ -22,9 +22,9 @@
           dataKey="id"
           size="small"
           class="w-full"
-          :value="streams"
+          :value="schools"
         >
-          <Column field="name" :header="$t('streams.columns.name')" sortable></Column>
+          <Column field="name" :header="$t('schools.columns.name')" sortable></Column>
           <Column :exportable="false">
             <template #body="slotProps">
               <div class="flex justify-end">
@@ -44,14 +44,14 @@
     <Dialog
       v-model:visible="newDialog"
       :style="{ width: '450px' }"
-      :header="t(`dialog.${selected ? 'edit' : 'new'}`, { s: t('streams.stream') })"
+      :header="t(`dialog.${selected ? 'edit' : 'new'}`, { s: t('schools.school') })"
       :modal="true"
       class="p-fluid"
     >
       <form>
         <div class="flex flex-col gap-2 text-gray-700 dark:text-white">
           <label for="newName" class="block text-sm font-medium"
-            >{{ t('streams.columns.name') }}:</label
+            >{{ t('schools.columns.name') }}:</label
           >
           <InputText
             v-model="name"
@@ -76,7 +76,7 @@
       </form>
     </Dialog>
     <Dialog
-      v-model:visible="deleteStreamDialog"
+      v-model:visible="deleteSchoolDialog"
       :style="{ width: '450px' }"
       :header="t('dialog.confirm')"
       :modal="true"
@@ -91,7 +91,7 @@
           :label="t('menu.no')"
           icon="pi pi-times"
           text
-          @click="deleteStreamDialog = false"
+          @click="deleteSchoolDialog = false"
         />
         <Button
           type="submit"
@@ -112,8 +112,8 @@
 //   - network error
 //   - permissions error
 
-import type Stream from '@/models/Stream'
-import { streamsStore } from '@/store/streams'
+import type School from '@/models/School'
+import { schoolsStore } from '@/store/schools'
 import Column from 'primevue/column'
 import DataTable from 'primevue/datatable'
 import Card from 'primevue/card'
@@ -128,19 +128,15 @@ import Message from 'primevue/message'
 import InputText from 'primevue/inputtext'
 import * as yup from 'yup'
 import { useForm } from 'vee-validate'
-import { useRoute } from 'vue-router'
-import { onBeforeRouteUpdate } from 'vue-router'
 
-const selected = ref<Stream | null>(null)
+const selected = ref<School | null>(null)
 const rowMenu = ref()
-const deleteStreamDialog = ref(false)
+const deleteSchoolDialog = ref(false)
 const newDialog = ref(false)
-const store = streamsStore()
-const streams = ref<Stream[]>([])
+const store = schoolsStore()
+const schools = ref<School[]>([])
 const error = ref('')
 const { t } = useI18n()
-const schoolId = ref(-1)
-const route = useRoute()
 
 const schema = yup.object().shape({
   name: yup
@@ -166,10 +162,10 @@ const rowMenuItems = ref([
 ])
 
 const confirmDelete = () => {
-  deleteStreamDialog.value = true
+  deleteSchoolDialog.value = true
 }
 
-const showRowMenu = (event: Event, data: Stream) => {
+const showRowMenu = (event: Event, data: School) => {
   selected.value = data
   rowMenu.value.show(event)
 }
@@ -192,12 +188,12 @@ const openNewDialog = () => {
 
 const deleteSelected = async () => {
   error.value = ''
-  deleteStreamDialog.value = false
+  deleteSchoolDialog.value = false
   try {
     if (selected.value) {
-      await store.deleteStream(schoolId.value, selected.value.id)
-      await store.fetchStreams(schoolId.value)
-      streams.value = store.streams
+      await store.deleteSchool(selected.value.id)
+      await store.fetchSchools()
+      schools.value = store.schools
     }
   } catch (e: any) {
     error.value = e.message || t('loginError') //FIXME:
@@ -206,17 +202,17 @@ const deleteSelected = async () => {
 
 const upsert = handleSubmit(async () => {
   error.value = ''
-  const newStream = {
+  const newSchool = {
     name: name.value
   }
   try {
     if (selected.value) {
-      await store.updateStream(schoolId.value, selected.value.id, newStream)
+      await store.updateSchool(selected.value.id, newSchool)
     } else {
-      await store.addStream(schoolId.value, newStream)
+      await store.addSchool(newSchool)
     }
-    await store.fetchStreams(schoolId.value)
-    streams.value = store.streams
+    await store.fetchSchools()
+    schools.value = store.schools
     newDialog.value = false
     resetForm()
   } catch (e: any) {
@@ -224,19 +220,8 @@ const upsert = handleSubmit(async () => {
   }
 })
 
-const load = async (schoolIdOpt: string | string[]) => {
-  if (typeof schoolIdOpt === 'string') {
-    schoolId.value = parseInt(schoolIdOpt, 10)
-    await store.fetchStreams(schoolId.value)
-    streams.value = store.streams
-  }
-}
-
-onBeforeRouteUpdate(async (to) => {
-  await load(to.params.schoolId)
-})
-
 onMounted(async () => {
-  await load(route.params.schoolId)
+  await store.fetchSchools()
+  schools.value = store.schools
 })
 </script>

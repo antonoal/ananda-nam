@@ -7,34 +7,42 @@ export const streamsStore = defineStore('streams', {
     streams: [] as Stream[]
   }),
   actions: {
-    async fetchStreams() {
+    async fetchStreams(schoolId: number) {
       try {
-        const response = await axiosClient.get<StreamsResponse>('/streams')
-        this.streams = response.data.streams
+        // const response = await axiosClient.get<StreamsResponse>(`/schools/${schoolId}/streams`)
+        // this.streams = response.data.streams
+        if (schoolId === 1) {
+          this.streams = [
+            { id: 1, name: 'Stream 2022' },
+            { id: 2, name: 'Stream 2021' }
+          ]
+        } else {
+          this.streams = []
+        }
       } catch (error) {
-        console.error('Error fetching persons:', error)
+        console.error('Error fetching streams:', error)
         throw error
       }
     },
-    async addStream(newStream: NewStream) {
+    async addStream(schoolId: number, newStream: NewStream) {
       try {
-        await axiosClient.post('/streams', { stream: newStream })
+        await axiosClient.post(`/schools/${schoolId}/streams`, { stream: newStream })
       } catch (error) {
         console.error('Error adding stream:', error)
         throw error
       }
     },
-    async deleteStream(id: number) {
+    async deleteStream(schoolId: number, id: number) {
       try {
-        await axiosClient.delete(`/streams/${id}`)
+        await axiosClient.delete(`/schools/${schoolId}/streams/${id}`)
       } catch (error) {
         console.error('Error deleting stream:', error)
         throw error
       }
     },
-    async updateStream(id: number, newStream: NewStream) {
+    async updateStream(schoolId: number, id: number, newStream: NewStream) {
       try {
-        await axiosClient.put(`/streams/${id}`, { stream: newStream })
+        await axiosClient.put(`/schools/${schoolId}/streams/${id}`, { stream: newStream })
       } catch (error) {
         console.error('Error updating stream:', error)
         throw error

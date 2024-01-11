@@ -12,7 +12,21 @@
   },
   "views": {
     "forbidden": "You are not authorised to view this page",
+    "schools": "Schools",
+    "years": "Years",
     "streams": "Streams"
+  },
+  "schools": {
+    "school": "School", 
+    "columns" : {
+      "name": "Name"
+    }
+  },
+  "years": {
+    "year": "Year", 
+    "columns" : {
+      "name": "Name"
+    }
   },
   "streams": {
     "stream": "Stream",

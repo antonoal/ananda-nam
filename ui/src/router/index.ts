@@ -5,6 +5,17 @@ import LayoutView from '../views/LayoutView.vue'
 import PersonsView from '../views/PersonsView.vue'
 import LoginView from '@/views/LoginView.vue'
 import ForbiddenView from '@/views/ForbiddenView.vue'
+import SchoolsView from '@/views/SchoolsView.vue'
+import YearsView from '@/views/YearsView.vue'
+
+export {}
+
+// Custom routes metadata type
+declare module 'vue-router' {
+  interface RouteMeta {
+    breadcrumbsLevel?: number
+  }
+}
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -14,9 +25,21 @@ const router = createRouter({
       component: LayoutView,
       meta: { requiresAuth: true },
       children: [
-        {path: '', component: HomeView},
-        {path: '/streams', component: StreamsView},
-        {path: '/persons', component: PersonsView}
+        { path: '', component: HomeView },
+        { path: '/schools', component: SchoolsView },
+        {
+          name: 'years-view',
+          path: '/schools/:schoolId/years',
+          component: YearsView,
+          meta: { breadcrumbsLevel: 1 }
+        },
+        {
+          name: 'streams-view',
+          path: '/schools/:schoolId/streams',
+          component: StreamsView,
+          meta: { breadcrumbsLevel: 1 }
+        },
+        { path: '/persons', component: PersonsView }
       ]
     },
     {

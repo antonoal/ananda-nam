@@ -9,9 +9,19 @@
           <div class="flex-1">
             <nav>
               <SidebarNavLink
-                path="/streams"
+                path="/schools"
+                :label="$t('views.schools')"
+                :v-if="auth.canSee('/schools')"
+              />
+              <SidebarNavLink
+                :path="`/schools/${selectedSchool?.id.toString()}/years`"
+                :label="$t('views.years')"
+                :v-if="auth.canSee('/years') && selectedSchool"
+              />
+              <SidebarNavLink
+                :path="`/schools/${selectedSchool?.id.toString()}/streams`"
                 :label="$t('views.streams')"
-                :v-if="auth.canSee('/streams')"
+                :v-if="auth.canSee('/streams') && selectedSchool"
               />
               <SidebarNavLink path="/persons" label="Persons" v-if="auth.canSee('/persons')" />
             </nav>
@@ -57,6 +67,38 @@
         <div class="flex h-full flex-col">
           <div class="flex-1 overflow-hidden">
             <div class="flex flex-col pb-9 text-sm">
+              <div class="pt-4 pl-8 mb-2 border-none">
+                <Menubar
+                  :model="breadcrumbs"
+                  :pt="{
+                    root: ({}) => ({
+                      class: 'border-none'
+                    }),
+                    content: ({ context }) => ({
+                      class:
+                        'transition-shadow duration-200 rounded-md text-gray-700 dark:text-white/80 hover:text-gray-700 dark:hover:text-white/80 ' +
+                        (context.level === 0 && context.index % 2 === 1
+                          ? ''
+                          : 'hover:bg-gray-200 ' +
+                            (context.level === 0
+                              ? 'dark:hover:bg-gray-900/80'
+                              : 'dark:hover:bg-gray-800/80'))
+                    }),
+                    action: ({ context }) => ({
+                      class:
+                        'flex align-items-center select-none flex items-center no-underline overflow-hidden relative py-1 px-2 ' +
+                        (context.level === 0 && context.index % 2 === 1 ? '' : 'cursor-pointer')
+                    })
+                  }"
+                >
+                  <template #item="{ item, props, hasSubmenu }">
+                    <a disabled class="flex align-items-center" v-bind="props.action">
+                      <span class="ml-2">{{ item.label }}</span>
+                      <i v-if="hasSubmenu" class="pi pi-angle-down ml-2"></i>
+                    </a>
+                  </template>
+                </Menubar>
+              </div>
               <div class="h-full p-8">
                 <RouterView />
               </div>
@@ -70,12 +112,46 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { RouterView } from 'vue-router'
+import { RouterView, useRouter } from 'vue-router'
 import Menu from 'primevue/menu'
 import SidebarNavLink from '@/components/SidebarNavLink.vue'
 import { authStore } from '../store/auth'
+import { schoolsStore } from '../store/schools'
+import { layoutStore } from '../store/layout'
+import Menubar from 'primevue/menubar'
+import { useRoute } from 'vue-router'
+import type School from '@/models/School'
 
 const auth = authStore()
+const schoolsState = schoolsStore()
+const layoutState = layoutStore()
+const route = useRoute()
+const router = useRouter()
+
+const selectedSchool = ref(layoutState.school)
+const allSchools = ref<School[]>([])
+
+const breadcrumbs = computed(() => [
+  {
+    label: selectedSchool.value?.name,
+    items: allSchools.value.map((s) => {
+      return {
+        label: s.name,
+        command: changeSchool(s)
+      }
+    }),
+    visible: route.meta.breadcrumbsLevel !== undefined && route.meta.breadcrumbsLevel > 0
+  },
+  {
+    label: '/',
+    visible: route.meta.breadcrumbsLevel !== undefined && route.meta.breadcrumbsLevel > 1
+  }
+  // {
+  //   label: 'Курс 1',
+  //   items: [{ label: 'Курс 1' }, { label: 'Курс 2' }],
+  //   visible: route.meta.breadcrumbsLevel !== undefined && route.meta.breadcrumbsLevel > 1
+  // }
+])
 
 const userMenu = ref()
 const userMenuItems = ref([
@@ -92,6 +168,16 @@ const toggleUserMenu = (event) => {
   userMenu?.value?.toggle(event)
 }
 
+const changeSchool = (s: School) => () => {
+  selectedSchool.value = s
+  layoutState.setSchool(s)
+
+  if (route.params.schoolId) {
+    const newRoute = { ...route, path: '', params: { ...route.params, schoolId: s.id } }
+    router.push(newRoute)
+  }
+}
+
 const user = computed(() => auth.user)
 
 const sidebarCollapsed = ref(document.documentElement.clientWidth < 1024)
@@ -104,8 +190,22 @@ const handleResize = () => {
   sidebarCollapsed.value = document.documentElement.clientWidth < 1024
 }
 
-onMounted(() => {
+onMounted(async () => {
   window.addEventListener('resize', handleResize)
+
+  await schoolsState.fetchSchools()
+
+  allSchools.value = schoolsState.schools
+
+  // Reset saved school if it's either empty or set to a non-exiting value
+  if (
+    schoolsState.schools.length > 0 &&
+    (layoutState.school === null ||
+      schoolsState.schools.findIndex((s) => s.id === layoutState.school?.id) === -1)
+  ) {
+    layoutState.setSchool(schoolsState.schools[0])
+    selectedSchool.value = layoutState.school
+  }
 })
 
 onBeforeUnmount(() => {
