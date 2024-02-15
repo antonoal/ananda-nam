@@ -2,23 +2,15 @@ import { defineStore } from 'pinia'
 import axiosClient from '@/axiosClient'
 import type Stream from '@/models/Stream'
 
-export const streamsStore = defineStore('streams', {
+export const useStreamsStore = defineStore('streams', {
   state: () => ({
     streams: [] as Stream[]
   }),
   actions: {
     async fetchStreams(schoolId: number) {
       try {
-        // const response = await axiosClient.get<StreamsResponse>(`/schools/${schoolId}/streams`)
-        // this.streams = response.data.streams
-        if (schoolId === 1) {
-          this.streams = [
-            { id: 1, name: 'Stream 2022' },
-            { id: 2, name: 'Stream 2021' }
-          ]
-        } else {
-          this.streams = []
-        }
+        const response = await axiosClient.get<StreamsResponse>(`/schools/${schoolId}/streams`)
+        this.streams = response.data.streams
       } catch (error) {
         console.error('Error fetching streams:', error)
         throw error

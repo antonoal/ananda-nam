@@ -11,19 +11,24 @@
               <SidebarNavLink
                 path="/schools"
                 :label="$t('views.schools')"
-                :v-if="auth.canSee('/schools')"
+                v-if="authStore.canSee('/schools')"
               />
               <SidebarNavLink
                 :path="`/schools/${selectedSchool?.id.toString()}/years`"
                 :label="$t('views.years')"
-                :v-if="auth.canSee('/years') && selectedSchool"
+                v-if="authStore.canSee('/years') && selectedSchool"
               />
               <SidebarNavLink
                 :path="`/schools/${selectedSchool?.id.toString()}/streams`"
                 :label="$t('views.streams')"
-                :v-if="auth.canSee('/streams') && selectedSchool"
+                v-if="authStore.canSee('/streams') && selectedSchool"
               />
-              <SidebarNavLink path="/persons" label="Persons" v-if="auth.canSee('/persons')" />
+              <SidebarNavLink
+                :path="`/schools/${selectedSchool?.id.toString()}/streams/${selectedStream?.id.toString()}/groups`"
+                :label="$t('views.groups')"
+                v-if="authStore.canSee('/groups') && selectedSchool && selectedStream"
+              />
+              <SidebarNavLink path="/persons" label="Persons" v-if="authStore.canSee('/persons')" />
             </nav>
           </div>
           <div v-if="user">
@@ -99,7 +104,7 @@
                   </template>
                 </Menubar>
               </div>
-              <div class="h-full p-8">
+              <div class="h-full p-8" style="font-size: 14px !important">
                 <RouterView />
               </div>
             </div>
@@ -115,21 +120,26 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterView, useRouter } from 'vue-router'
 import Menu from 'primevue/menu'
 import SidebarNavLink from '@/components/SidebarNavLink.vue'
-import { authStore } from '../store/auth'
-import { schoolsStore } from '../store/schools'
-import { layoutStore } from '../store/layout'
+import { useAuthStore } from '../store/auth'
+import { useSchoolsStore } from '../store/schools'
+import { useStreamsStore } from '../store/streams'
+import { useLayoutStore } from '../store/layout'
 import Menubar from 'primevue/menubar'
 import { useRoute } from 'vue-router'
 import type School from '@/models/School'
+import type Stream from '@/models/Stream'
 
-const auth = authStore()
-const schoolsState = schoolsStore()
-const layoutState = layoutStore()
+const authStore = useAuthStore()
+const schoolsStore = useSchoolsStore()
+const streamsStore = useStreamsStore()
+const layoutStore = useLayoutStore()
 const route = useRoute()
 const router = useRouter()
 
-const selectedSchool = ref(layoutState.school)
+const selectedSchool = ref(layoutStore.school)
+const selectedStream = ref(layoutStore.stream)
 const allSchools = ref<School[]>([])
+const allStreams = ref<Stream[]>([])
 
 const breadcrumbs = computed(() => [
   {
@@ -145,12 +155,17 @@ const breadcrumbs = computed(() => [
   {
     label: '/',
     visible: route.meta.breadcrumbsLevel !== undefined && route.meta.breadcrumbsLevel > 1
+  },
+  {
+    label: selectedStream.value?.name,
+    items: allStreams.value.map((s) => {
+      return {
+        label: s.name,
+        command: changeStream(s)
+      }
+    }),
+    visible: route.meta.breadcrumbsLevel !== undefined && route.meta.breadcrumbsLevel > 1
   }
-  // {
-  //   label: 'Курс 1',
-  //   items: [{ label: 'Курс 1' }, { label: 'Курс 2' }],
-  //   visible: route.meta.breadcrumbsLevel !== undefined && route.meta.breadcrumbsLevel > 1
-  // }
 ])
 
 const userMenu = ref()
@@ -161,16 +176,18 @@ const userMenuItems = ref([
   {
     label: 'Logout',
     icon: '',
-    command: () => auth.logout()
+    command: () => authStore.logout()
   }
 ])
 const toggleUserMenu = (event) => {
   userMenu?.value?.toggle(event)
 }
 
-const changeSchool = (s: School) => () => {
+const changeSchool = (s: School) => async () => {
   selectedSchool.value = s
-  layoutState.setSchool(s)
+  layoutStore.setSchool(s)
+
+  await refreshStream()
 
   if (route.params.schoolId) {
     const newRoute = { ...route, path: '', params: { ...route.params, schoolId: s.id } }
@@ -178,7 +195,17 @@ const changeSchool = (s: School) => () => {
   }
 }
 
-const user = computed(() => auth.user)
+const changeStream = (s: Stream) => () => {
+  selectedStream.value = s
+  layoutStore.setStream(s)
+
+  if (route.params.streamId) {
+    const newRoute = { ...route, path: '', params: { ...route.params, streamId: s.id } }
+    router.push(newRoute)
+  }
+}
+
+const user = computed(() => authStore.user)
 
 const sidebarCollapsed = ref(document.documentElement.clientWidth < 1024)
 
@@ -190,22 +217,56 @@ const handleResize = () => {
   sidebarCollapsed.value = document.documentElement.clientWidth < 1024
 }
 
+const refreshStream = async () => {
+  if (selectedSchool.value) {
+    await streamsStore.fetchStreams(selectedSchool.value.id)
+
+    allStreams.value = streamsStore.streams
+
+    // Reset saved stream if it's either empty or set to a non-exiting value
+    if (streamsStore.streams.length > 0) {
+      console.log('Checking selected stream')
+      if (
+        layoutStore.stream === null ||
+        streamsStore.streams.findIndex((s) => s.id === layoutStore.stream?.id) === -1
+      ) {
+        layoutStore.setStream(streamsStore.streams[0])
+        selectedStream.value = layoutStore.stream
+      }
+    } else {
+      console.log('Setting stream to null')
+
+      layoutStore.resetStream()
+    }
+  } else {
+    layoutStore.resetStream()
+  }
+}
+
 onMounted(async () => {
   window.addEventListener('resize', handleResize)
 
-  await schoolsState.fetchSchools()
+  await schoolsStore.fetchSchools()
 
-  allSchools.value = schoolsState.schools
+  allSchools.value = schoolsStore.schools
 
   // Reset saved school if it's either empty or set to a non-exiting value
-  if (
-    schoolsState.schools.length > 0 &&
-    (layoutState.school === null ||
-      schoolsState.schools.findIndex((s) => s.id === layoutState.school?.id) === -1)
-  ) {
-    layoutState.setSchool(schoolsState.schools[0])
-    selectedSchool.value = layoutState.school
+  if (schoolsStore.schools.length > 0) {
+    console.log('Checking selected school')
+    if (
+      layoutStore.school === null ||
+      schoolsStore.schools.findIndex((s) => s.id === layoutStore.school?.id) === -1
+    ) {
+      layoutStore.setSchool(schoolsStore.schools[0])
+      selectedSchool.value = layoutStore.school
+    }
+  } else {
+    console.log('Setting school to null')
+
+    layoutStore.resetSchool()
   }
+
+  await refreshStream()
 })
 
 onBeforeUnmount(() => {

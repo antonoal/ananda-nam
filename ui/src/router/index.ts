@@ -7,6 +7,7 @@ import LoginView from '@/views/LoginView.vue'
 import ForbiddenView from '@/views/ForbiddenView.vue'
 import SchoolsView from '@/views/SchoolsView.vue'
 import YearsView from '@/views/YearsView.vue'
+import GroupsView from '@/views/GroupsView.vue'
 
 export {}
 
@@ -38,6 +39,12 @@ const router = createRouter({
           path: '/schools/:schoolId/streams',
           component: StreamsView,
           meta: { breadcrumbsLevel: 1 }
+        },
+        {
+          name: 'groups-view',
+          path: '/schools/:schoolId/streams/:streamId/groups',
+          component: GroupsView,
+          meta: { breadcrumbsLevel: 2 }
         },
         { path: '/persons', component: PersonsView }
       ]

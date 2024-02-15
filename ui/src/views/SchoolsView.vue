@@ -5,7 +5,6 @@
       <template #title>{{ $t('views.schools') }}</template>
       <template #content>
         <Button
-          size="small"
           outlined
           :label="$t('menu.new')"
           icon="pi pi-plus"
@@ -20,7 +19,6 @@
           removableSort
           stripedRows
           dataKey="id"
-          size="small"
           class="w-full"
           :value="schools"
         >
@@ -29,7 +27,6 @@
             <template #body="slotProps">
               <div class="flex justify-end">
                 <Button
-                  size="small"
                   icon="pi pi-ellipsis-h"
                   text
                   severity="secondary"
@@ -57,7 +54,6 @@
             v-model="name"
             v-bind="nameAttrs"
             id="name"
-            size="small"
             autofocus
             :class="[{ 'border-red-500': errors.name }]"
           />
@@ -113,7 +109,7 @@
 //   - permissions error
 
 import type School from '@/models/School'
-import { schoolsStore } from '@/store/schools'
+import { useSchoolsStore } from '@/store/schools'
 import Column from 'primevue/column'
 import DataTable from 'primevue/datatable'
 import Card from 'primevue/card'
@@ -133,7 +129,7 @@ const selected = ref<School | null>(null)
 const rowMenu = ref()
 const deleteSchoolDialog = ref(false)
 const newDialog = ref(false)
-const store = schoolsStore()
+const store = useSchoolsStore()
 const schools = ref<School[]>([])
 const error = ref('')
 const { t } = useI18n()

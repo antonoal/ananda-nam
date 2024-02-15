@@ -1,10 +1,10 @@
 import { defineStore } from 'pinia'
 import axiosClient from '@/axiosClient'
 import router from '@/router'
+import { useTokenStore } from '@/store/token'
 
-export const authStore = defineStore('auth', {
+export const useAuthStore = defineStore('auth', {
   state: () => ({
-    token: '',
     user: null as User | null
   }),
   persist: true,
@@ -14,11 +14,11 @@ export const authStore = defineStore('auth', {
         email: email,
         password: password
       })
-      this.token = response.data.token
+      useTokenStore().setToken(response.data.token)
       this.user = response.data.user
     },
     logout() {
-      this.token = ''
+      useTokenStore().setToken('')
       this.user = null
       router.push('/login')
     },

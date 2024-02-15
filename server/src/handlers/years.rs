@@ -1,4 +1,4 @@
-use crate::{errors::AppError, schema::streams, AppState};
+use crate::{errors::AppError, schema::years, AppState};
 use actix_web::{web, HttpRequest, HttpResponse};
 use chrono::{Local, NaiveDateTime};
 use diesel::{prelude::*, result::Error as DieselError, sql_query, sql_types::*};
@@ -6,13 +6,14 @@ use serde::{Deserialize, Serialize};
 
 pub async fn get_all(
     state: web::Data<AppState>,
-    req: HttpRequest,
+    req: HttpRequest, //TODO: enforce access rights on the backend!
     path: web::Path<i32>,
 ) -> Result<HttpResponse, AppError> {
     let mut conn = state.get_conn()?;
+    // let user_id = auth::get_current_user_id(&req)?;
     let school_id = path.into_inner();
-    let streams = web::block(move || Stream::get_all(&mut conn, school_id)).await??;
-    Ok(HttpResponse::Ok().json(GetAllResponse { streams }))
+    let years = web::block(move || Year::get_all(&mut conn, school_id)).await??;
+    Ok(HttpResponse::Ok().json(GetAllResponse { years }))
 }
 
 pub async fn create(
@@ -23,7 +24,7 @@ pub async fn create(
 ) -> Result<HttpResponse, AppError> {
     let mut conn = state.get_conn()?;
     let school_id = path.into_inner();
-    let id = web::block(move || Stream::create(&mut conn, school_id, &form.stream)).await??;
+    let id = web::block(move || Year::create(&mut conn, school_id, &form.year)).await??;
     Ok(HttpResponse::Ok().json(CreateResponse { id }))
 }
 
@@ -35,7 +36,7 @@ pub async fn update(
 ) -> Result<HttpResponse, AppError> {
     let mut conn = state.get_conn()?;
     let (school_id, id) = path.into_inner();
-    let id = web::block(move || Stream::update(&mut conn, school_id, id, &form.stream)).await??;
+    let id = web::block(move || Year::update(&mut conn, school_id, id, &form.year)).await??;
     Ok(HttpResponse::Ok().json(CreateResponse { id }))
 }
 
@@ -46,28 +47,25 @@ pub async fn delete(
 ) -> Result<HttpResponse, AppError> {
     let mut conn = state.get_conn()?;
     let (_, id) = path.into_inner();
-    web::block(move || Stream::delete(&mut conn, id)).await??;
+    web::block(move || Year::delete(&mut conn, id)).await??;
     Ok(HttpResponse::Ok().json(()))
 }
 
 #[derive(Debug, Serialize, QueryableByName)]
-struct Stream {
+struct Year {
     #[diesel(sql_type = Int4)]
     id: i32,
     #[diesel(sql_type = Text)]
     name: String,
-    #[diesel(sql_type = Int2)]
-    start_year: i16,
 }
 
-impl Stream {
+impl Year {
     fn get_all(conn: &mut PgConnection, school_id: i32) -> Result<Vec<Self>, AppError> {
         let res = sql_query(
             r#"
             select s.id,
-                s.name,
-                s.start_year
-            from streams s
+                s.name
+            from years s
             where s.valid_from <= now()
                 and s.valid_to > now()
                 and s.school_id = $1
@@ -80,14 +78,13 @@ impl Stream {
         Ok(res)
     }
 
-    fn create(conn: &mut PgConnection, school_id: i32, form: &NewStream) -> Result<i32, AppError> {
-        use streams::dsl;
+    fn create(conn: &mut PgConnection, school_id: i32, form: &NewYear) -> Result<i32, AppError> {
+        use years::dsl;
         let valid_from = Local::now().naive_utc();
-        let id: i32 = diesel::insert_into(streams::table)
+        let id: i32 = diesel::insert_into(years::table)
             .values((
                 dsl::school_id.eq(school_id),
                 dsl::name.eq(&form.name),
-                dsl::start_year.eq(&form.start_year),
                 dsl::valid_from.eq(valid_from),
             ))
             .returning(dsl::id)
@@ -100,20 +97,19 @@ impl Stream {
         conn: &mut PgConnection,
         school_id: i32,
         id: i32,
-        form: &NewStream,
+        form: &NewYear,
     ) -> Result<i32, AppError> {
-        use streams::dsl;
+        use years::dsl;
         let now: NaiveDateTime = Local::now().naive_utc();
 
         conn.transaction(|conn| {
             Self::expire(conn, id, Some(now))?;
 
-            diesel::insert_into(streams::table)
+            diesel::insert_into(years::table)
                 .values((
                     dsl::id.eq(id),
                     dsl::school_id.eq(school_id),
                     dsl::name.eq(&form.name),
-                    dsl::start_year.eq(&form.start_year),
                     dsl::valid_from.eq(&now),
                 ))
                 .execute(conn)
@@ -133,10 +129,10 @@ impl Stream {
         id: i32,
         valid_to: Option<NaiveDateTime>,
     ) -> Result<(), DieselError> {
-        use streams::dsl;
+        use years::dsl;
         let valid_to = valid_to.unwrap_or_else(|| Local::now().naive_utc());
 
-        diesel::update(streams::table)
+        diesel::update(years::table)
             .filter(
                 dsl::id
                     .eq(id)
@@ -152,7 +148,7 @@ impl Stream {
 
 #[derive(Debug, Serialize)]
 struct GetAllResponse {
-    streams: Vec<Stream>,
+    years: Vec<Year>,
 }
 
 #[derive(Debug, Serialize)]
@@ -161,12 +157,11 @@ struct CreateResponse {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct NewStream {
+pub struct NewYear {
     name: String,
-    start_year: i16,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct UpsertRequest {
-    stream: NewStream,
+    year: NewYear,
 }

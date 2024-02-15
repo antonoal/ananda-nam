@@ -2,19 +2,15 @@ import { defineStore } from 'pinia'
 import axiosClient from '@/axiosClient'
 import type School from '@/models/School'
 
-export const schoolsStore = defineStore('schools', {
+export const useSchoolsStore = defineStore('schools', {
   state: () => ({
     schools: [] as School[]
   }),
   actions: {
     async fetchSchools() {
       try {
-        // const response = await axiosClient.get<SchoolsResponse>('/schools')
-        // this.schools = response.data.schools
-        this.schools = [
-          { id: 1, name: 'XYZ' },
-          { id: 2, name: 'ABC DEF' }
-        ]
+        const response = await axiosClient.get<SchoolsResponse>('/schools')
+        this.schools = response.data.schools
       } catch (error) {
         console.error('Error fetching schools:', error)
         throw error

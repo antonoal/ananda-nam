@@ -7,8 +7,11 @@ use serde::{Deserialize, Serialize};
 use crate::schema::persons;
 use crate::{errors::AppError, AppState};
 
+pub mod groups;
+pub mod schools;
 pub mod streams;
 pub mod user;
+pub mod years;
 
 #[derive(Debug, Serialize, Deserialize, QueryableByName)]
 pub struct Person {

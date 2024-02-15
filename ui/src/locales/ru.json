@@ -14,7 +14,8 @@
     "forbidden": "У Вас нет доступа к этой странице",
     "schools": "Направления",
     "years": "Курсы",
-    "streams": "Потоки"
+    "streams": "Потоки",
+    "groups": "Группы"
   },
   "schools": {
     "school": "Направление", 
@@ -26,6 +27,11 @@
     "year": "Курс", 
     "columns" : {
       "name": "Название"
+    }
+  },
+  "groups": {
+    "columns": {
+      "name": "Имя группы"
     }
   },
   "streams": {

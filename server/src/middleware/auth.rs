@@ -164,12 +164,12 @@ impl SkipAuthRoute {
     }
 }
 
-pub fn get_current_user(req: &HttpRequest) -> Result<User, AppError> {
+pub fn get_current_user_id(req: &HttpRequest) -> Result<i32, AppError> {
     req.extensions()
         .get::<User>()
-        .map(|user| user.to_owned())
+        .map(|user| user.id)
         .ok_or_else(|| {
-            AppError::Unauthorized("Unauthrized user. Need auth token on header.".into())
+            AppError::Unauthorized("Unauthorized user. Need auth token on header.".into())
         })
 }
 
@@ -194,6 +194,6 @@ mod tests {
 }
 
 const SKIP_AUTH_API_ROUTES: [SkipAuthRoute; 1] = [SkipAuthRoute {
-    path: "/api/1/users/login",
+    path: "/api/1/login",
     method: Method::POST,
 }];

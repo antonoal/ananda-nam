@@ -31,7 +31,7 @@ enum FindFilter<'a> {
 #[derive(Debug, QueryableByName, PartialEq, Clone)]
 #[diesel(table_name = persons)]
 pub struct User {
-    id: i32,
+    pub id: i32,
     name: String,
     email: String,
     password_hash: Option<String>,
@@ -59,7 +59,6 @@ impl User {
                 array_agg(p2."name") as privileges
             from persons p
                 left join person_roles pr ON p.id = pr.person_id
-                and p.valid_from = pr.person_valid_from
                 left join role_privileges rp on rp.role_id = pr.role_id
                 left join "privileges" p2 on p2.id = rp.privilege_id
             where p.{filter_column} = $1

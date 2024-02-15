@@ -9,19 +9,8 @@ export const yearsStore = defineStore('years', {
   actions: {
     async fetchYears(schoolId: number) {
       try {
-        // const response = await axiosClient.get<YearsResponse>(`/schools/${schoolId}/years`)
-        // this.years = response.data.years
-        if (schoolId == 1) {
-          this.years = [
-            { id: 1, name: 'Year 1' },
-            { id: 2, name: 'Year 2' }
-          ]
-        } else {
-          this.years = [
-            { id: 3, name: 'Year 3' },
-            { id: 4, name: 'Year 4' }
-          ]
-        }
+        const response = await axiosClient.get<YearsResponse>(`/schools/${schoolId}/years`)
+        this.years = response.data.years
       } catch (error) {
         console.error('Error fetching years:', error)
         throw error
@@ -29,7 +18,7 @@ export const yearsStore = defineStore('years', {
     },
     async addYear(schoolId: number, newYear: NewYear) {
       try {
-        await axiosClient.post(`/school/${schoolId}/years`, { year: newYear })
+        await axiosClient.post(`/schools/${schoolId}/years`, { year: newYear })
       } catch (error) {
         console.error('Error adding year:', error)
         throw error
@@ -37,7 +26,7 @@ export const yearsStore = defineStore('years', {
     },
     async deleteYear(schoolId: number, id: number) {
       try {
-        await axiosClient.delete(`/school/${schoolId}/years/${id}`)
+        await axiosClient.delete(`/schools/${schoolId}/years/${id}`)
       } catch (error) {
         console.error('Error deleting year:', error)
         throw error
@@ -45,7 +34,7 @@ export const yearsStore = defineStore('years', {
     },
     async updateYear(schoolId: number, id: number, newYear: NewYear) {
       try {
-        await axiosClient.put(`/school/${schoolId}/years/${id}`, { year: newYear })
+        await axiosClient.put(`/schools/${schoolId}/years/${id}`, { year: newYear })
       } catch (error) {
         console.error('Error updating year:', error)
         throw error

@@ -48,7 +48,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(Data::new(app_state))
             .wrap(middleware::cors())
             // .wrap(Compress::default())
-            // .wrap(middleware::auth::Authentication)
+            .wrap(middleware::auth::Authentication)
             .configure(routes::routes)
     })
     .bind("0.0.0.0:8080")?

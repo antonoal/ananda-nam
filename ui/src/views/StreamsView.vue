@@ -5,7 +5,6 @@
       <template #title>{{ $t('views.streams') }}</template>
       <template #content>
         <Button
-          size="small"
           outlined
           :label="$t('menu.new')"
           icon="pi pi-plus"
@@ -20,16 +19,15 @@
           removableSort
           stripedRows
           dataKey="id"
-          size="small"
           class="w-full"
           :value="streams"
         >
           <Column field="name" :header="$t('streams.columns.name')" sortable></Column>
+          <Column field="start_year" header="Start Year" sortable></Column>
           <Column :exportable="false">
             <template #body="slotProps">
               <div class="flex justify-end">
                 <Button
-                  size="small"
                   icon="pi pi-ellipsis-h"
                   text
                   severity="secondary"
@@ -50,18 +48,28 @@
     >
       <form>
         <div class="flex flex-col gap-2 text-gray-700 dark:text-white">
-          <label for="newName" class="block text-sm font-medium"
-            >{{ t('streams.columns.name') }}:</label
-          >
+          <label for="newName" class="block">{{ t('streams.columns.name') }}:</label>
           <InputText
             v-model="name"
             v-bind="nameAttrs"
             id="name"
-            size="small"
             autofocus
             :class="[{ 'border-red-500': errors.name }]"
           />
           <small class="text-red-500 dark:text-red-800">{{ errors.name }}</small>
+        </div>
+        <div class="flex flex-col gap-2 text-gray-700 dark:text-white">
+          <label for="newName" class="block">Start Year:</label>
+          <InputNumber
+            v-model="startYear"
+            v-bind="startYearAttrs"
+            :useGrouping="false"
+            :min="1970"
+            :max="3000"
+            id="startYear"
+            :class="[{ 'border-red-500': errors.startYear }]"
+          />
+          <small class="text-red-500 dark:text-red-800">{{ errors.startYear }}</small>
         </div>
         <div class="flex justify-end">
           <Button
@@ -113,7 +121,7 @@
 //   - permissions error
 
 import type Stream from '@/models/Stream'
-import { streamsStore } from '@/store/streams'
+import { useStreamsStore } from '@/store/streams'
 import Column from 'primevue/column'
 import DataTable from 'primevue/datatable'
 import Card from 'primevue/card'
@@ -126,6 +134,7 @@ import Dialog from 'primevue/dialog'
 import { useI18n } from 'vue-i18n'
 import Message from 'primevue/message'
 import InputText from 'primevue/inputtext'
+import InputNumber from 'primevue/inputnumber'
 import * as yup from 'yup'
 import { useForm } from 'vee-validate'
 import { useRoute } from 'vue-router'
@@ -135,7 +144,7 @@ const selected = ref<Stream | null>(null)
 const rowMenu = ref()
 const deleteStreamDialog = ref(false)
 const newDialog = ref(false)
-const store = streamsStore()
+const store = useStreamsStore()
 const streams = ref<Stream[]>([])
 const error = ref('')
 const { t } = useI18n()
@@ -147,7 +156,8 @@ const schema = yup.object().shape({
     .string()
     .trim()
     .min(3, 'Name must be at least 3 characters long')
-    .required('Name is required')
+    .required('Name is required'),
+  startYear: yup.number().min(1970).max(3000).required()
 })
 
 const { defineField, resetForm, errors, handleSubmit, setValues } = useForm({
@@ -155,6 +165,7 @@ const { defineField, resetForm, errors, handleSubmit, setValues } = useForm({
 })
 
 const [name, nameAttrs] = defineField('name', { validateOnModelUpdate: false })
+const [startYear, startYearAttrs] = defineField('startYear', { validateOnModelUpdate: false })
 
 const rowMenuItems = ref([
   {
@@ -180,7 +191,7 @@ const closeNewDialog = () => {
 
 const openEditDialog = () => {
   resetForm()
-  setValues({ name: selected.value?.name })
+  setValues({ name: selected.value?.name, startYear: selected.value?.start_year })
   newDialog.value = true
 }
 
@@ -207,7 +218,8 @@ const deleteSelected = async () => {
 const upsert = handleSubmit(async () => {
   error.value = ''
   const newStream = {
-    name: name.value
+    name: name.value,
+    start_year: startYear.value
   }
   try {
     if (selected.value) {

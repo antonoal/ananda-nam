@@ -58,7 +58,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { authStore } from '../store/auth'
+import { useAuthStore } from '../store/auth'
 import router from '@/router'
 import { useForm } from 'vee-validate'
 import * as yup from 'yup'
@@ -68,7 +68,7 @@ import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
 import { useI18n } from 'vue-i18n'
 
-const auth = authStore()
+const auth = useAuthStore()
 const error = ref('')
 
 const { t } = useI18n()

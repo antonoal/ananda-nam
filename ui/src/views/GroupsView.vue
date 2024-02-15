@@ -2,7 +2,7 @@
   <Message severity="error" v-if="error">{{ error }}</Message>
   <div class="container">
     <Card>
-      <template #title>{{ $t('views.years') }}</template>
+      <template #title>{{ $t('views.groups') }}</template>
       <template #content>
         <Button
           outlined
@@ -14,15 +14,20 @@
         />
         <Divider />
         <Menu ref="rowMenu" :model="rowMenuItems" popup />
-        <DataTable
-          v-model:contextMenuSelection="selected"
+        <Menu ref="leafRowMenu" :model="leafRowMenuItems" popup />
+        <TreeTable
           removableSort
           stripedRows
+          resizableColumns
+          :value="groups"
           dataKey="id"
           class="w-full"
-          :value="years"
+          size="small"
+          v-model:contextMenuSelection="selected"
         >
-          <Column field="name" :header="$t('years.columns.name')" sortable></Column>
+          <Column field="name" :header="$t('groups.columns.name')" expander></Column>
+          <Column field="responsible" header="Responsible"></Column>
+          <Column field="student" header="Student"></Column>
           <Column :exportable="false">
             <template #body="slotProps">
               <div class="flex justify-end">
@@ -30,31 +35,32 @@
                   icon="pi pi-ellipsis-h"
                   text
                   severity="secondary"
-                  @click="showRowMenu($event, slotProps.data)"
+                  @click="showRowMenu($event, slotProps.node)"
                 />
               </div>
             </template>
           </Column>
-        </DataTable>
+        </TreeTable>
       </template>
     </Card>
     <Dialog
       v-model:visible="newDialog"
       :style="{ width: '450px' }"
-      :header="t(`dialog.${selected ? 'edit' : 'new'}`, { s: t('years.year') })"
+      :header="t(`dialog.${selected ? 'edit' : 'new'}`, { s: t('streams.stream') })"
       :modal="true"
       class="p-fluid"
     >
       <form>
         <div class="flex flex-col gap-2 text-gray-700 dark:text-white">
-          <label for="newName" class="block text-sm font-medium"
-            >{{ t('years.columns.name') }}:</label
-          >
+          <label for="newName" class="block text-sm font-medium">{{
+            t('streams.columns.name')
+          }}</label>
           <InputText
             v-model="name"
             v-bind="nameAttrs"
             id="name"
             autofocus
+            autocomplete="false"
             :class="[{ 'border-red-500': errors.name }]"
           />
           <small class="text-red-500 dark:text-red-800">{{ errors.name }}</small>
@@ -72,14 +78,14 @@
       </form>
     </Dialog>
     <Dialog
-      v-model:visible="deleteYearDialog"
+      v-model:visible="deleteStreamDialog"
       :style="{ width: '450px' }"
       :header="t('dialog.confirm')"
       :modal="true"
     >
       <div class="confirmation-content">
         <i class="pi pi-exclamation-triangle mr-3 text-3xl" />
-        <span v-if="selected">{{ t('dialog.confirmDelete', { s: selected.name }) }}</span>
+        <span v-if="selected">{{ t('dialog.confirmDelete', { s: selected.data.name }) }}</span>
       </div>
       <template #footer>
         <Button
@@ -87,7 +93,7 @@
           :label="t('menu.no')"
           icon="pi pi-times"
           text
-          @click="deleteYearDialog = false"
+          @click="deleteStreamDialog = false"
         />
         <Button
           type="submit"
@@ -104,17 +110,14 @@
 <script setup lang="ts">
 ////////////////
 // TODO: error handling with i18n
-//   - dup key violation
+//   - dup key vialation
 //   - network error
 //   - permissions error
 
-import type Year from '@/models/Year'
-import { yearsStore } from '@/store/years'
+import { groupsStore } from '@/store/groups'
 import Column from 'primevue/column'
-import DataTable from 'primevue/datatable'
 import Card from 'primevue/card'
-import { onMounted } from 'vue'
-import { ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import Button from 'primevue/button'
 import Menu from 'primevue/menu'
 import Divider from 'primevue/divider'
@@ -124,18 +127,23 @@ import Message from 'primevue/message'
 import InputText from 'primevue/inputtext'
 import * as yup from 'yup'
 import { useForm } from 'vee-validate'
-import { onBeforeRouteUpdate, useRoute } from 'vue-router'
+import { type Group } from '@/models/Group'
+import TreeTable from 'primevue/treetable'
+import { onBeforeRouteUpdate } from 'vue-router'
+import { useRoute } from 'vue-router'
 
-const route = useRoute()
-const selected = ref<Year | null>(null)
+const selected = ref<Group | null>(null)
 const rowMenu = ref()
-const deleteYearDialog = ref(false)
+const leafRowMenu = ref()
+const deleteStreamDialog = ref(false)
 const newDialog = ref(false)
-const store = yearsStore()
-const years = ref<Year[]>([])
+const store = groupsStore()
+const groups = ref<Group[]>([])
 const error = ref('')
-const { t } = useI18n()
+const streamId = ref(-1)
 const schoolId = ref(-1)
+const route = useRoute()
+const { t } = useI18n()
 
 const schema = yup.object().shape({
   name: yup
@@ -157,16 +165,31 @@ const rowMenuItems = ref([
     icon: 'pi pi-fw pi-file-edit',
     command: () => openEditDialog()
   },
+  { label: 'Add Child', command: () => openNewDialog() },
+  { label: 'Appoint Responsible' },
+  { label: t('menu.delete'), icon: 'pi pi-fw pi-times', command: () => confirmDelete() }
+])
+
+const leafRowMenuItems = ref([
+  {
+    label: 'Edit Leaf',
+    icon: 'pi pi-fw pi-file-edit'
+    // command: () => openEditDialog()
+  },
   { label: t('menu.delete'), icon: 'pi pi-fw pi-times', command: () => confirmDelete() }
 ])
 
 const confirmDelete = () => {
-  deleteYearDialog.value = true
+  deleteStreamDialog.value = true
 }
 
-const showRowMenu = (event: Event, data: Year) => {
+const showRowMenu = (event: Event, data: Group) => {
   selected.value = data
+  // if (isLeafSelected.value) {
+  //   leafRowMenu.value.show(event)
+  // } else {
   rowMenu.value.show(event)
+  // }
 }
 
 const closeNewDialog = () => {
@@ -175,24 +198,23 @@ const closeNewDialog = () => {
 
 const openEditDialog = () => {
   resetForm()
-  setValues({ name: selected.value?.name })
+
+  setValues({ name: selected.value?.data.name })
   newDialog.value = true
 }
 
 const openNewDialog = () => {
   resetForm()
-  selected.value = null
   newDialog.value = true
 }
 
 const deleteSelected = async () => {
   error.value = ''
-  deleteYearDialog.value = false
+  deleteStreamDialog.value = false
   try {
     if (selected.value) {
-      await store.deleteYear(schoolId.value, selected.value.id)
-      await store.fetchYears(schoolId.value)
-      years.value = store.years
+      await store.deleteGroup(schoolId.value, selected.value.key)
+      await refresh()
     }
   } catch (e: any) {
     error.value = e.message || t('loginError') //FIXME:
@@ -201,37 +223,44 @@ const deleteSelected = async () => {
 
 const upsert = handleSubmit(async () => {
   error.value = ''
-  const newYear = {
-    name: name.value
-  }
+
   try {
-    if (selected.value) {
-      await store.updateYear(schoolId.value, selected.value.id, newYear)
-    } else {
-      await store.addYear(schoolId.value, newYear)
-    }
-    await store.fetchYears(schoolId.value)
-    years.value = store.years
+    await store.addGroup(schoolId.value, name.value, streamId.value, selected.value)
+    // if (selected.value) {
+    //   await store.updateStream(selected.value.id, newStream)
+    // } else {
+    //   await store.addStream(newStream)
+    // }
+    await refresh()
     newDialog.value = false
     resetForm()
   } catch (e: any) {
     error.value = e.message || t('loginError') //FIXME:
   }
+  selected.value = null
 })
 
-const load = async (schoolIdOpt: string | string[]) => {
-  if (typeof schoolIdOpt === 'string') {
+const load = async (schoolIdOpt: string | string[], streamIdOpt: string | string[]) => {
+  if (typeof streamIdOpt === 'string' && typeof schoolIdOpt === 'string') {
+    streamId.value = parseInt(streamIdOpt, 10)
     schoolId.value = parseInt(schoolIdOpt, 10)
-    await store.fetchYears(schoolId.value)
-    years.value = store.years
+
+    refresh()
   }
 }
 
-onBeforeRouteUpdate(async (to) => {
-  await load(to.params.schoolId)
-})
+const refresh = async () => {
+  await store.fetchGroups(schoolId.value)
+  groups.value = store.getGroup(streamId.value)
+}
 
 onMounted(async () => {
-  await load(route.params.schoolId)
+  await load(route.params.schoolId, route.params.streamId)
 })
+
+onBeforeRouteUpdate(async (to) => {
+  await load(to.params.schoolId, to.params.streamId)
+})
+
+onMounted(async () => {})
 </script>
